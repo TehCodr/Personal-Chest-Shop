@@ -1,0 +1,6 @@
+name: Register
+version: 1.0
+main: com.tehcodr.personalchestshop.PersonalChestShop
+description: Make your personal chest into a shop!
+author: TehCodr
+softdepend: [iConomy, BOSEconomy, Currency, MultiCurrency, Essentials]
