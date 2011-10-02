@@ -34,14 +34,41 @@
 
 package com.tehcodr.util;
 
+import java.lang.reflect.Method;
+
 import org.bukkit.entity.Player;
+import org.bukkit.command.*;
 
 import com.tehcodr.util.Command;
 
-public class CommandManager<T> {
+public class CommandManager implements CommandExecutor {
 	
 	/**
 	 * The manager for player. This sends/receives data to/from the player.
 	 */
+	Player player;
+
+	/**
+	 * The array that contains all of the commands.
+	 */
+	com.tehcodr.util.Command commands[];
+	
+	/**
+	 * The number of commands in the array, 0 inclusive.
+	 */
+	int numCommands = 0;
+	
+	void register(com.tehcodr.util.Command command) {
+		commands[numCommands + 1] = command;
+	}
+	
+	@Override
+	public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
+			if (sender instanceof Player)
+				this.player = (Player)sender;
+			else
+				return false;
+		return true;
+	}
 	
 }
