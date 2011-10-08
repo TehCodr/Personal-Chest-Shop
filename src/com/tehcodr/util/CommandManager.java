@@ -1,8 +1,5 @@
 /**  
- * CommandManager.java - The handler for minecraft commands, loosely based off of sk89q's command system.
- * @file  
- * @author  Omri Barak, TehCodr
- * @version 1.0
+ * CommandManager.java
  * 
  * @section LICENSE
  * 
@@ -27,48 +24,89 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * @section DESCRIPTION
- * 
- * The handler for minecraft commands, loosely based off of sk89q's command system.
- */ 
+ */
 
 package com.tehcodr.util;
 
-import java.lang.reflect.Method;
+import java.util.List;
 
 import org.bukkit.entity.Player;
 import org.bukkit.command.*;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import com.tehcodr.util.Command;
+import com.tehcodr.util.*;
 
-public class CommandManager implements CommandExecutor {
+/**
+ * The handler for minecraft commands, loosely based off of sk89q's command system.
+ * 
+ * @author Omri Barak, TehCodr
+ * @version 1.0
+ *
+ */
+public final class CommandManager implements CommandExecutor {
 	
 	/**
-	 * The manager for player. This sends/receives data to/from the player.
+	 * The manager has to be activated, so no commands can be managed until
+	 * it is activated, for the sake of accidental initialization of multiple managers.
 	 */
-	Player player;
+	protected boolean activated;
+	
+	/**
+	 * The main plugin class. Since all plugin classes of Bukkit extends JavaPlugin,
+	 * this should work with anything that implements or extends it.
+	 */
+	protected JavaPlugin plugin;
 
 	/**
 	 * The array that contains all of the commands.
 	 */
-	com.tehcodr.util.Command commands[];
+	protected List<com.tehcodr.util.Command> commands;
 	
 	/**
 	 * The number of commands in the array, 0 inclusive.
 	 */
-	int numCommands = 0;
+	protected int numCommands = 0;
 	
-	void register(com.tehcodr.util.Command command) {
-		commands[numCommands + 1] = command;
+	/**
+	 * Initializes the CommandManager by setting the plugin parent.
+	 * @param plugin the plugin that calls it. Usually referenced by this.
+	 */
+	public CommandManager(JavaPlugin plugin) {
+		this.plugin = plugin;
+	}
+	
+	/**
+	 * Activates the program, by setting activated to true.
+	 */
+	public void activate() {
+		activated = true;
+	}
+	
+	/**
+	 * Registers the command into the base.
+	 * @param command
+	 * @throws UnactivatedManagerException if the manager hasn't been activated yet.
+	 */
+	public void register(com.tehcodr.util.Command command) throws UnactivatedManagerException {
+		if(commands.indexOf(command) == -1)
+			commands.add(command);
+		if(!activated) {
+			throw new UnactivatedManagerException("Forgot to activate() manager");
+		}
+		if(activated) {
+			for(int i=0; i < command.getNames().size(); i++) {
+				plugin.getCommand(command.getName(i)).setExecutor(this);
+			}
+		}
 	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-			if (sender instanceof Player)
-				this.player = (Player)sender;
-			else
-				return false;
-		return true;
+		for(int i=0; i < commands.size(); i++)
+			for(int j=0; j < commands.get(i).getNames().size(); j++)
+				if(commands.get(i).getName(j) == command.getName())
+					commands.get(i).execute(sender, args);
+		return false;
 	}
 	
 }
